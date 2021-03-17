@@ -1,0 +1,32 @@
+#!/bin/zsh
+
+. /usr/lib/zabbix/etc/matrix.conf
+
+RECEIVER="$1"
+SUBJECT="$2"
+MESSAGE="$3"
+SEVERITY=0
+
+if $(echo "$MESSAGE"|jq . >/dev/null 2>/dev/null)
+then
+	# WE GOT NICE JSON!! in $MESSAGE
+	FCOLOR=$SEVERITY_COLOR[$(($(echo "$MESSAGE"|jq -r .event.nseverity)+1))]
+	FICON=$SEVERITY_ICON[$(($(echo "$MESSAGE"|jq -r .event.nseverity)+1))]
+	if [ "problem" = "$(echo "$MESSAGE"|jq -r .type)" ]
+	then
+		# GOT A PROBLEM
+		[ "$(echo "$MESSAGE"|jq -r .event.nseverity)" -gt "2" ] && HILIGHT=" (@room $RECEIVER)"
+		PAYLOAD_COLOR='<span data-mx-bg-color=\"'$FCOLOR'\" data-mx-color=\"#000000\">'
+		PAYLOAD='( "'$FICON' " + '$(echo "$MESSAGE"|jq .host.name)' + " " + "'$(echo "$MESSAGE"|jq -r .event.severity)'"  + ": " + $SUBJECT + "'$HILIGHT'" )'
+		FPAYLOAD='( "'$FICON' " + '$(echo "$MESSAGE"|jq .host.name)' + " " + "<font color=\"'$FCOLOR'\">'$(echo "$MESSAGE"|jq -r .event.severity)'"  + ": " + "'$PAYLOAD_COLOR'" + $SUBJECT + "'$HILIGHT'" )'
+	else
+		PAYLOAD_COLOR='<span data-mx-color=\"'$FCOLOR'\" >'
+		PAYLOAD='( "✅ " + '$(echo "$MESSAGE"|jq .host.name)' + ": " + $SUBJECT )'
+		FPAYLOAD='( "✅ " + '$(echo "$MESSAGE"|jq .host.name)' + ": " + "'$PAYLOAD_COLOR'" + $SUBJECT )'
+	fi
+
+	jq -c -n --arg RECEIVER "$RECEIVER" --arg SUBJECT "$SUBJECT" --arg PAYLOAD "$PAYLOAD" --argjson MESSAGE "$MESSAGE" '{ body: '$PAYLOAD',formatted_body: '$FPAYLOAD', "gr.jmt.zbx2mtrx.rawjson": $MESSAGE , msgtype: "m.notice", "format": "org.matrix.custom.html" }'|curl -X PUT "https://${HS}/_matrix/client/r0/rooms/${ROOMID}/send/m.room.message/"`uuid -m -F SIV`"?access_token=${AT}" -H  "accept: application/json" -H  "Content-Type: application/json" -d@-  >> /tmp/matrixlog
+else
+	# FUCK THIS FUCK THAT AND SEND IT AS IS
+	jq -c -n --arg RECEIVER "$RECEIVER" --arg SUBJECT "$SUBJECT" --arg MESSAGE "$MESSAGE" '{ body: ( $RECEIVER + ": " + $SUBJECT + "\n---\n" + $MESSAGE ), msgtype: "m.notice"  }'|curl -X PUT "https://${HS}/_matrix/client/r0/rooms/${ROOMID}/send/m.room.message/"`uuid -m -F SIV`"?access_token=${AT}" -H  "accept: application/json" -H  "Content-Type: application/json" -d@-  >> /tmp/matrixlog
+fi
