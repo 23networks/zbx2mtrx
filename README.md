@@ -2,10 +2,17 @@
 A script to send Zabbix notifications to matrix
 
 ## Intro
-This script is a prove of concept, use at your own risk, it has known bugs
+This script is a quick and dirty prove of concept, use at your own risk, it has known bugs
+
+It receives a json message from zabbix and does beautiful things with it.
+If the message isn't json, it's just passed to matrix as is.
 
 ## Known Bugs
   - using double quotes " in trigger names break the json
+
+## Requirements
+  - jq
+  - curl
 
 ## Hook it up
   - place the script at `/usr/lib/zabbix/etc/matrix` or wherever
