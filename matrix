@@ -27,6 +27,6 @@ then
 
 	jq -c -n --arg RECEIVER "$RECEIVER" --arg SUBJECT "$SUBJECT" --arg PAYLOAD "$PAYLOAD" --argjson MESSAGE "$MESSAGE" '{ body: '$PAYLOAD',formatted_body: '$FPAYLOAD', "gr.jmt.zbx2mtrx.rawjson": $MESSAGE , msgtype: "m.notice", "format": "org.matrix.custom.html" }'|curl -X PUT "https://${HS}/_matrix/client/r0/rooms/${ROOMID}/send/m.room.message/"`uuid -m -F SIV`"?access_token=${AT}" -H  "accept: application/json" -H  "Content-Type: application/json" -d@-  >/dev/null
 else
-	# FUCK THIS FUCK THAT AND SEND IT AS IS
+	# $MESSAGE isn't json, send it as is
 	jq -c -n --arg RECEIVER "$RECEIVER" --arg SUBJECT "$SUBJECT" --arg MESSAGE "$MESSAGE" '{ body: ( $RECEIVER + ": " + $SUBJECT + "\n---\n" + $MESSAGE ), msgtype: "m.notice"  }'|curl -X PUT "https://${HS}/_matrix/client/r0/rooms/${ROOMID}/send/m.room.message/"`uuid -m -F SIV`"?access_token=${AT}" -H  "accept: application/json" -H  "Content-Type: application/json" -d@-  >/dev/null
 fi
