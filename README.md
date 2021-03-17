@@ -15,7 +15,7 @@ If the message isn't json, it's just passed to matrix as is.
   - curl
 
 ## Hook it up
-  - place the script at `/usr/lib/zabbix/etc/matrix` or wherever
+  - place the script at `/usr/lib/zabbix/alertscripts/matrix` or wherever
   - place the `matrix.conf` at `/usr/lib/zabbix/etc/matrix.conf`
     - fill in AT, HS and ROOMID
   - create a media type in zabbix → administration → media types
