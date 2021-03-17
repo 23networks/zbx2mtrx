@@ -3,9 +3,10 @@
 . /usr/lib/zabbix/etc/matrix.conf
 
 RECEIVER="$1"
-SUBJECT="$2"
-MESSAGE="$3"
-SEVERITY=0
+shift
+SUBJECT="$1"
+shift
+MESSAGE="$1"
 
 if $(echo "$MESSAGE"|jq . >/dev/null 2>/dev/null)
 then
